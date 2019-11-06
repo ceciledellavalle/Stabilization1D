@@ -41,7 +41,7 @@ class Water_Tank:
         self.operator = np.zeros((n,n))
         # Eigen value space parameters
         self.m = int(2*m+1)
-        self.basis = np.zeros((m,n))
+        self.basis = np.zeros((n,m))
         self.eigenval = np.zeros(m)
         # 
         try:
@@ -108,21 +108,19 @@ class Water_Tank:
         # Initialisation
         xi = np.zeros((self.m,self.nt))
         inv_hg = np.sqrt(np.ones(self.n)-self.gamma*np.linspace(0,self.length,self.n))**-1
-        # il manque le passage dans la base des vp 
-        # To do
-        xi[:,0] = inv_hg.dot(np.ones(2*self.n))
+        # Initial condition
+        xi[:,0] = self.basis.dot(inv_hg.dot(np.ones(2*self.n)))
         # Iterative solving
         dt = 1/self.nt
         for j in range(0,self.nt):
             xi[:,j+1] = xi[:,j] + dt*self.eigenval + dt*control_BK
-        # Passage dans la base des fonctions continues par morceaux
-        # To do
         # Transformation en Etat final
         interim_matrix = np.concatenate((\
         np.concatenate((inv_hg,np.eye(self.n)),axis=1),\
         np.concatenate((-inv_hg,np.eye(self.n)),axis=1)\
         ))
-        self.state = np.linalg.inv(interim_matrix).dot(xi)
+        self.state = np.linalg.pinv(self.basis)\
+        .dot(np.linalg.inv(interim_matrix).dot(xi)) #pseudo inverse moore penrose and svd
         
         
     
