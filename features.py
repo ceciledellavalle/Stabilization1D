@@ -111,17 +111,17 @@ class Water_Tank:
         # Initialisation
         xi = np.zeros((self.m,self.nt))
         inv_hg = np.sqrt(np.ones(self.n)-self.gamma*np.linspace(0,self.length,self.n))**-1
+        interim_matrix = np.concatenate((\
+        np.concatenate((inv_hg,np.eye(self.n)),axis=1),\
+        np.concatenate((-inv_hg,np.eye(self.n)),axis=1)\
+        ))
         # Initial condition
-        xi[:,0] = self.basis.dot(inv_hg.dot(np.ones(2*self.n)))
+        xi[:,0] = self.basis.dot(interim_matrix.dot(np.ones(2*self.n)))
         # Iterative solving
         dt = 1/self.nt
         for j in range(0,self.nt):
             xi[:,j+1] = xi[:,j] + dt*self.eigenval + dt*control_BK
         # Transformation en Etat final
-        interim_matrix = np.concatenate((\
-        np.concatenate((inv_hg,np.eye(self.n)),axis=1),\
-        np.concatenate((-inv_hg,np.eye(self.n)),axis=1)\
-        ))
         self.state = np.linalg.pinv(self.basis)\
         .dot(np.linalg.inv(interim_matrix).dot(xi)) #pseudo inverse moore penrose and svd
     #
