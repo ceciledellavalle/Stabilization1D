@@ -14,6 +14,9 @@ import sys
 # Math - Matrices
 import numpy as np
 import math
+# Plots
+import matplotlib as plt
+from matplotlib import animation, rc
 
 class Water_Tank:
     """Classe représantant le bac d'eau à stabiliser, 
@@ -121,6 +124,35 @@ class Water_Tank:
         ))
         self.state = np.linalg.pinv(self.basis)\
         .dot(np.linalg.inv(interim_matrix).dot(xi)) #pseudo inverse moore penrose and svd
+    #
+    # Visualisation
+    def WT_Visualization(self):
+         # Set up the figure, the axis, and the plot element we want to animate
+        fig = plt.figure()
+        ax = plt.axes(xlim=(0, self.length), ylim=(0, 1))
+        line, = ax.plot([], [], lw=2)
+        time_vector = np.linspace(0,10,self.nt)
+        time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+        # Initialization function: plot the background of each frame
+        def Init():
+            line.set_data([], [])
+            time_text.set_text('')
+            return line, time_text
+    # Animation function.  This is called sequentially
+        def Animate1DT(i):
+            x = np.linspace(0,self.n,self.length)
+            # hauteur
+            y = self.state[:n,i]
+            line.set_data(x, y)
+            time_text.set_text(evolution%time_text)
+            return line, time_text
+        anim = animation.FuncAnimation(fig, Animate1DT, \
+        init_func=Init,\
+        frames=self.nt, interval=50, blit=True)  
+        plt.show()
+
+    
+      
         
         
     
