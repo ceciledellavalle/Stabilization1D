@@ -19,19 +19,38 @@ class Water_Tank:
     """Classe représantant le bac d'eau à stabiliser, 
     avec une longueur L et une pente gamma."""
     # Contructeur
-    def __init__(self, l,g,n,m):
+    def __init__(self, l,g,cvg,n,m):
         """Constructeur de la classe.
         Il qui prend en objet les paramètres physiques du systems :
-        l --  Longueur de la cuve
-        g --  Pente gamma
+        l   --  Longueur de la cuve
+        g   --  Pente gamma
+        cvg -- paramètre nu, convergence
         et les paramètres numériques de la discrétisation :
-        n -- taille du maillage de la hauteur h, et vitesse v
-        m -- taille du maillage de la base réduite de vecteur propres sur axe imaginaire positif"""
+        n   -- taille du maillage de la hauteur h, et vitesse v
+        m   -- taille du maillage de la base réduite de vecteur propres sur axe imaginaire positif
+        """
         self.length = l
+        self.n = int(n)
+        self.nt = int(math.floor(n*10/l)) # total time = 10 (arbitrary)
         self.gamma = g
         self.lgamma = 2/g*(1-math.sqrt(1-g*l))
-        self.n = int(n)
+        self.nu = cvg
+        # etat (h,v)
+        self.state = np.zeros((2*n,self.nt))
+        # transport operator in the transformed space
         self.operator = np.zeros((n,n))
+        # Eigen value space parameters
+        self.m = int(2*m+1)
+        self.basis = np.zeros((m,n))
+        self.eigenval = np.zeros(m)
+        # 
+        try:
+            # the slope gamma is not superior to (h=1)/l
+            assert g < 1/l
+        except ValueError:
+            print("La pente de stabilisation est trop grande.")   
+            sys.exit() 
+        #
         try:
             # number of eigen must be odd 
             # 2m+1 < n total number of eigen must be inferior to dimension n
@@ -39,9 +58,7 @@ class Water_Tank:
         except ValueError:
             print("La dimension finale dans l'espace des vecteurs propres est trop grande.")   
             sys.exit() 
-        self.m = int(2*m+1)
-        self.basis = np.zeros((m,n))
-        self.eigenval = np.zeros(m)
+
     #
     # Calcul de l'operateur 
     def OperatorA(self):
@@ -55,7 +72,7 @@ class Water_Tank:
         np.concatenate((flow_up,np.zeros((self.n,self.n))),axis=1),\
         np.concatenate((np.zeros((self.n,self.n)),-flow_down),axis=1)\
         ))
-        # CL x= 0
+        # CL x = 0
         flow_mix[0,-1] = 1
         # CL x = L
         flow_mix[-1,0] = 1
@@ -82,4 +99,30 @@ class Water_Tank:
         eigenVectors = eigenVectors[:,idx]
         self.basis = eigenVectors[:,:self.m]
         self.eigenval = eigenValues[:self.m]
+    #
+    # Transformation dans le systeme d'etat
+    def Solver_WaterTank(self):
+        # Definition of control BK
+        control_BK =-2*math.tanh(self.nu*self.length)*np.ones(self.m) # to be determined
+        #
+        # Initialisation
+        xi = np.zeros((self.m,self.nt))
+        inv_hg = np.sqrt(np.ones(self.n)-self.gamma*np.linspace(0,self.length,self.n))**-1
+        # il manque le passage dans la base des vp 
+        # To do
+        xi[:,0] = inv_hg.dot(np.ones(2*self.n))
+        # Iterative solving
+        dt = 1/self.nt
+        for j in range(0,self.nt):
+            xi[:,j+1] = xi[:,j] + dt*self.eigenval + dt*control_BK
+        # Passage dans la base des fonctions continues par morceaux
+        # To do
+        # Transformation en Etat final
+        interim_matrix = np.concatenate((\
+        np.concatenate((inv_hg,np.eye(self.n)),axis=1),\
+        np.concatenate((-inv_hg,np.eye(self.n)),axis=1)\
+        ))
+        self.state = np.linalg.inv(interim_matrix).dot(xi)
+        
+        
     

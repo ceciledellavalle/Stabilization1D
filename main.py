@@ -25,9 +25,11 @@ tank_length = 10 # meters
 slope_gamma = 0.05 # h = 0.5m
 mesh_nb = 100
 eigen_nb = 20
+# Speed of convergence to stabilisation
+cvg_speed = 1
 
 ### PROBLEM CONSTRUCTION
-wt1 = Water_Tank(tank_length,slope_gamma,mesh_nb,eigen_nb)
+wt1 = Water_Tank(tank_length,slope_gamma,cvg_speed,mesh_nb,eigen_nb)
 wt1.OperatorA()
 wt1.Eigen_Basis()
 print(wt1.eigenval)
