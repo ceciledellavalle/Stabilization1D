@@ -60,6 +60,8 @@ class Water_Tank:
         # CL x = L
         flow_mix[-1,0] = 1
         #
+        flow_mix = self.length/self.n*flow_mix
+        #
         # Operator of Control
         delta_J = -3/4*self.lgamma/self.length*self.gamma/(1-self.gamma/2)\
         *np.concatenate((\
