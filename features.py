@@ -15,7 +15,7 @@ import sys
 import numpy as np
 import math
 # Plots
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from matplotlib import animation, rc
 
 class Water_Tank:
