@@ -71,22 +71,22 @@ class Water_Tank:
         flow_up[0,0] = 0
         flow_down = np.diag(np.ones(self.n-1),1) - np.eye(self.n)
         flow_down[-1,-1] = 0
-        flow_mix = np.concatenate((\
+        flow_mix = self.n/self.length*np.concatenate((\
         np.concatenate((flow_up,np.zeros((self.n,self.n))),axis=1),\
         np.concatenate((np.zeros((self.n,self.n)),-flow_down),axis=1)\
         ))
         # CL x = 0
-        flow_mix[0,-1] = 1
+        flow_mix[0,self.n] = -1
         # CL x = L
-        flow_mix[-1,0] = 1
-        #
-        flow_mix = self.length/self.n*flow_mix
-        #
+        flow_mix[self.n-1,-1] = -1
         # Operator of Control
-        delta_J = -3/4*self.lgamma/self.length*self.gamma/(1-self.gamma/2)\
-        *np.concatenate((\
-        np.concatenate((np.zeros((self.n,self.n)), 1/3*np.diag(np.linspace(0,self.length,self.n))),axis=1),\
-        np.concatenate((-1/3*np.diag(np.linspace(0,self.length,self.n)),np.zeros((self.n,self.n))),axis=1)\
+        delta_x = -3/4*self.lgamma*\
+        (1+1/2*self.gamma*\
+        (self.length*np.ones(self.n)+np.diag(np.linspace(0,self.length,self.n))\
+        ))
+        delta_J = np.concatenate((\
+        np.concatenate(( np.zeros((self.n,self.n)), 1/3*delta_x ),axis=1),\
+        np.concatenate((-1/3*delta_x, np.zeros((self.n,self.n)) ),axis=1)\
         ))
         #
         # Sum of operators
@@ -97,7 +97,7 @@ class Water_Tank:
         # Construction of the dynamic 
         eigenValues, eigenVectors = np.linalg.eig(self.operator)
         eigenValues_modulus = np.abs(eigenValues)
-        idx = eigenValues_modulus.argsort()[::-1]   
+        idx = eigenValues_modulus.argsort()  
         eigenValues = eigenValues[idx]
         eigenVectors = eigenVectors[:,idx]
         self.basis = eigenVectors[:,:self.m]
