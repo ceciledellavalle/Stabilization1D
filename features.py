@@ -76,15 +76,15 @@ class Water_Tank:
         # CL x = 0
         flow_mix[0,self.n] = self.n/self.length
         # CL x = L
-        flow_mix[self.n-1,-1] = self.n/self.length
+        flow_mix[self.n-1,-1] = -self.n/self.length
         # Operator of Control
         delta_x = -3/4*self.lgamma*\
         (1+1/2*self.gamma*\
-        (self.length*np.ones(self.n)+np.diag(np.linspace(0,self.length,self.n))\
+        (self.length*np.ones(self.n)+np.diag(np.linspace(0,self.length,self.n+1))\
         ))
         delta_J = np.concatenate((\
-        np.concatenate(( np.zeros((self.n,self.n)), 1/3*delta_x ),axis=1),\
-        np.concatenate((-1/3*delta_x, np.zeros((self.n,self.n)) ),axis=1)\
+        np.concatenate(( np.zeros((self.n,self.n)), 1/3*delta_x[:-1] ),axis=1),\
+        np.concatenate((-1/3*delta_x[1:], np.zeros((self.n,self.n)) ),axis=1)\
         ))
         #
         # Sum of operators
