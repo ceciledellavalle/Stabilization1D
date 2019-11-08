@@ -68,17 +68,15 @@ class Water_Tank:
         # Operator of Transport
         # upstream scheme
         flow_up = np.eye(self.n) - np.diag(np.ones(self.n-1),-1)
-        flow_up[0,0] = 0
         flow_down = np.diag(np.ones(self.n-1),1) - np.eye(self.n)
-        flow_down[-1,-1] = 0
         flow_mix = self.n/self.length*np.concatenate((\
         np.concatenate((flow_up,np.zeros((self.n,self.n))),axis=1),\
         np.concatenate((np.zeros((self.n,self.n)),-flow_down),axis=1)\
         ))
         # CL x = 0
-        flow_mix[0,self.n] = -1
+        flow_mix[0,self.n] = self.n/self.length
         # CL x = L
-        flow_mix[self.n-1,-1] = -1
+        flow_mix[self.n-1,-1] = self.n/self.length
         # Operator of Control
         delta_x = -3/4*self.lgamma*\
         (1+1/2*self.gamma*\

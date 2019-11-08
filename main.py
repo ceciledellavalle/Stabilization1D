@@ -23,7 +23,7 @@ from features import Water_Tank
 ### PARAMETERS DEFINITION
 tank_length = 10 # meters
 slope_gamma = 0.005 # h = 0.05m
-mesh_nb = 100
+mesh_nb = 1000
 eigen_nb = 20
 # Speed of convergence to stabilisation
 cvg_speed = 1
